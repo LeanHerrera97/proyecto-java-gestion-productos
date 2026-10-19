@@ -1,5 +1,6 @@
 package com.techlab.main;
 
+import com.techlab.excepciones.StockInsuficienteException;
 import com.techlab.pedidos.LineaPedido;
 import com.techlab.pedidos.Pedido;
 import com.techlab.pedidos.PedidoService;
@@ -49,7 +50,8 @@ public class Main {
                     System.out.print("Stock: ");
                     int stock = Integer.parseInt(scanner.nextLine());
 
-                    Producto producto = new Producto(nombre, precio, stock);
+                    Producto producto =
+                            new Producto(nombre, precio, stock);
 
                     productoService.agregarProducto(producto);
 
@@ -64,13 +66,18 @@ public class Main {
                 case 3:
 
                     System.out.print("Ingrese ID del producto: ");
-                    int idBuscar = Integer.parseInt(scanner.nextLine());
+                    int idBuscar =
+                            Integer.parseInt(scanner.nextLine());
 
-                    Producto encontrado = productoService.buscarPorId(idBuscar);
+                    Producto encontrado =
+                            productoService.buscarPorId(idBuscar);
 
                     if (encontrado != null) {
+
                         System.out.println(encontrado);
+
                     } else {
+
                         System.out.println("Producto no encontrado.");
                     }
 
@@ -79,7 +86,8 @@ public class Main {
                 case 4:
 
                     System.out.print("Ingrese ID del producto: ");
-                    int idActualizar = Integer.parseInt(scanner.nextLine());
+                    int idActualizar =
+                            Integer.parseInt(scanner.nextLine());
 
                     Producto actualizar =
                             productoService.buscarPorId(idActualizar);
@@ -109,7 +117,8 @@ public class Main {
                 case 5:
 
                     System.out.print("Ingrese ID del producto a eliminar: ");
-                    int idEliminar = Integer.parseInt(scanner.nextLine());
+                    int idEliminar =
+                            Integer.parseInt(scanner.nextLine());
 
                     if (productoService.eliminarProducto(idEliminar)) {
 
@@ -124,45 +133,62 @@ public class Main {
 
                 case 6:
 
-                    System.out.print("Ingrese ID del producto: ");
-                    int idProducto =
-                            Integer.parseInt(scanner.nextLine());
+                    try {
 
-                    Producto productoPedido =
-                            productoService.buscarPorId(idProducto);
+                        System.out.print("Ingrese ID del producto: ");
+                        int idProducto =
+                                Integer.parseInt(scanner.nextLine());
 
-                    if (productoPedido == null) {
+                        Producto productoPedido =
+                                productoService.buscarPorId(idProducto);
 
-                        System.out.println("Producto no encontrado.");
-                        break;
+                        if (productoPedido == null) {
+
+                            System.out.println("Producto no encontrado.");
+                            break;
+                        }
+
+                        System.out.print("Cantidad: ");
+                        int cantidad =
+                                Integer.parseInt(scanner.nextLine());
+
+                        if (cantidad > productoPedido.getStock()) {
+
+                            throw new StockInsuficienteException(
+                                    "Stock insuficiente. Disponible: "
+                                            + productoPedido.getStock()
+                            );
+                        }
+
+                        Pedido pedido = new Pedido();
+
+                        LineaPedido lineaPedido =
+                                new LineaPedido(
+                                        productoPedido,
+                                        cantidad
+                                );
+
+                        pedido.agregarLinea(lineaPedido);
+
+                        productoPedido.setStock(
+                                productoPedido.getStock() - cantidad
+                        );
+
+                        pedidoService.agregarPedido(pedido);
+
+                        System.out.println("Pedido creado correctamente.");
+                        System.out.println(
+                                "Total: $" + pedido.calcularTotal()
+                        );
+
+                    } catch (StockInsuficienteException e) {
+
+                        System.out.println(e.getMessage());
+
+                    } catch (Exception e) {
+
+                        System.out.println("Error al crear el pedido.");
                     }
-
-                    System.out.print("Cantidad: ");
-                    int cantidad =
-                            Integer.parseInt(scanner.nextLine());
-
-                    if (cantidad > productoPedido.getStock()) {
-
-                        System.out.println("Stock insuficiente.");
-                        break;
-                    }
-
-                    Pedido pedido = new Pedido();
-
-                    LineaPedido lineaPedido =
-                            new LineaPedido(productoPedido, cantidad);
-
-                    pedido.agregarLinea(lineaPedido);
-
-                    productoPedido.setStock(
-                            productoPedido.getStock() - cantidad
-                    );
-
-                    pedidoService.agregarPedido(pedido);
-
-                    System.out.println("Pedido creado correctamente.");
-                    System.out.println("Total: $" +
-                            pedido.calcularTotal());
 
                     break;
 
